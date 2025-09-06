@@ -1,0 +1,54 @@
+name: Test Hello World Prolog
+
+# Trigger the workflow on pushes to main and on pull requests
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-prolog:
+    name: Test Prolog Hello World
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install SWI-Prolog
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y swi-prolog
+        
+    - name: Verify SWI-Prolog installation
+      run: |
+        swipl --version
+        
+    - name: Run Hello World program
+      run: |
+        # Run the Prolog program and capture output
+        output=$(swipl -g hello_world -t halt hello_world.pl 2>&1)
+        echo "Program output: '$output'"
+        
+        # Verify the output matches exactly "Hello, World!"
+        if [ "$output" = "Hello, World!" ]; then
+          echo "✅ Test passed! Output matches expected 'Hello, World!'"
+          exit 0
+        else
+          echo "❌ Test failed! Expected 'Hello, World!' but got '$output'"
+          exit 1
+        fi
+        
+    - name: Test alternative main entry point
+      run: |
+        # Test the main predicate as well
+        output=$(swipl -g main -t halt hello_world.pl 2>&1)
+        echo "Main predicate output: '$output'"
+        
+        if [ "$output" = "Hello, World!" ]; then
+          echo "✅ Main predicate test passed!"
+        else
+          echo "❌ Main predicate test failed! Expected 'Hello, World!' but got '$output'"
+          exit 1
+        fi
